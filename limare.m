@@ -34,18 +34,20 @@ tic
 		data = struct2cell(load ('database','-mat'));
         database = data{1,1}; %open constituents database   
         %%start importing GLOSS csv file
-        name = erase(file, '.csv');
+        if exist('database.mat','file')
+            name = erase('file', '.csv');
+        end
+        
         fprintf("Select Tide Gauge archive (.csv) \n ")
         [file,path] = uigetfile('*.csv'); 
         if isequal(file,0)
-		disp('User selected Cancel'); return
+            disp('User selected Cancel'); return
         else
         filepath = [path,file];
         end
-        if exist(inicial)==0
-        inicial = readtable(filepath); %Matriz inicial 5 x n
-           %ano,dia, mes, hora, level
-            
+        if exist('inicial','var')
+        else
+            inicial = readtable(filepath); %Matriz inicial 5 x n %ano,dia, mes, hora, level
         end   
         disp(['User selected ', fullfile(path,file)]);%end importing GLOSS csv file
      
