@@ -9,23 +9,85 @@ function limare()
 tic
 %% inicio dos cálculos
 
-	%%Entrada padrão do GLOSS
-	%import .csv as inicial
-	fprintf("Select Tide Gauge archive (.csv) \n ")
-	[file,path] = uigetfile('*.csv');
-	if isequal(file,0)
-		disp('User selected Cancel'); return
-	else
-		disp(['User selected ', fullfile(path,file)]);
-	end
+%% IMPORTA BASE DE Componentes%
+	%%%cria um cell array - anual (componente(amplitude, fase)
+	%%cálculo pelo array ou por matriz?
 
+	% The input matrix = database
+	% File does not exist.
+	%import .csv as database
+    
+    %3 options - defalt developer file, default file or no file
+ 
 	fprintf("Inicializando... \n ");
-
-	filepath = [path,file];
-
-	inicial = readtable(filepath);
-	%Matriz inicial 5 x n
-	%ano,dia, mes, hora, level
+    if exist('databasecan.mat','file') %developer file 
+		name = "cananeia";
+        data = struct2cell(load ('databasecan','-mat'));
+        database = data{1,1}; %open constituents database
+       if length(data)>2
+           inicial = data{2,1}; %open default tide gauge (if exists)
+           latitude = data{3,1};
+       elseif length(data)>1
+           inicial = data{2,1}; %open default tide gauge (if exists)
+       end
+     elseif exist('database.mat','file') %default file
+		data = struct2cell(load ('database','-mat'));
+        database = data{1,1}; %open constituents database   
+        %%start importing GLOSS csv file
+        name = erase(file, '.csv');
+        fprintf("Select Tide Gauge archive (.csv) \n ")
+        [file,path] = uigetfile('*.csv'); 
+        if isequal(file,0)
+		disp('User selected Cancel'); return
+        else
+        filepath = [path,file];
+        end
+        if exist(inicial)==0
+        inicial = readtable(filepath); %Matriz inicial 5 x n
+           %ano,dia, mes, hora, level
+            
+        end   
+        disp(['User selected ', fullfile(path,file)]);%end importing GLOSS csv file
+     
+    
+        
+        
+        
+        
+     else
+		fprintf("Select database archive (.mat)");%no file, import database and gloss file
+		[file2,path2] = uigetfile('*.mat');
+		if isequal(file,0)
+			disp('User selected Cancel');
+		else
+			disp(['User selected ', fullfile(path2,file2)]);
+			file2 = [path2,file2];
+            database = load (file2);
+        end
+        %%start importing GLOSS csv file
+    name = erase(file, '.csv');
+    fprintf("Select Tide Gauge archive (.csv) \n ")
+    [file,path] = uigetfile('*.csv'); %open default tide gauge (if exists)
+        if isequal(file,0)
+		disp('User selected Cancel'); return
+        else
+		
+        filepath = [path,file];
+        end  
+        
+	disp(['User selected ', fullfile(path,file)]);
+	
+    if exist(inicial)==0
+        inicial = readtable(filepath); %Matriz inicial 5 x n
+           %ano,dia, mes, hora, level
+            %end importing GLOSS csv file
+    else 
+    end
+       
+    end %%end importing database and tide gauge
+    
+    
+     
 	anoinicial = unique(inicial{1,1}); %define o ano inicial ;
 	mesinicial = inicial{1,2};
 	diainicial = inicial{1,3};
@@ -42,36 +104,7 @@ tic
     
     
     
-    
-    %% IMPORTA BASE DE Componentes%
-	%%%cria um cell array - anual (componente(amplitude, fase)
-	%%cálculo pelo array ou por matriz?
-
-	% The input matrix = database
-	% File does not exist.
-	%import .csv as database
-    
-    if exist('database.mat','file')
-		database = load ('database','-mat');
-	else
-		fprintf("Select database archive (.mat)");
-		[file2,path2] = uigetfile('*.mat');
-		if isequal(file,0)
-			disp('User selected Cancel');
-		else
-			disp(['User selected ', fullfile(path2,file2)]);
-			file2 = [path2,file2];
-		end
-		database = load (file2);
-    end
-    
-    if isa(database,'struct') ==1
-        database = struct2cell(database);
-        database = database{1,1};
-    else
-    end
-    
-    name = erase(file, '.csv');
+  
     
     
 %% fim da limare_inic() - inicio das funções
@@ -645,7 +678,13 @@ Amp_err = renamevars(Amp_err,allVars,names)  ;
 Pha = cell2table(Pha);
 Pha = renamevars(Pha,allVars,names) ;
 Pha_err = cell2table(Pha_err);
-Pha_err = renamevars(Pha_err,allVars,names)  ;
+Pha_err = renamevars(Pha_err,allVars,names);
+openexcel = "~"+exc;
+
+    if exist(openexcel,'file') == ~2   
+        [x,y] = system('taskkill /F /IM EXCEL.EXE'); %%fecha o excel
+    else
+    end
 
 
     writetable(Amp,exc,'Sheet',"Amp")
@@ -737,7 +776,13 @@ function lim_exc19 (tablonga)
     Pha19_err = cell2table(Pha19_err);
     Pha19_err = renamevars(Pha19_err,allVars,names) ; 
 
+    openexcel19 = "~"+exc19; %temp excel file
 
+    if exist(openexcel19,'file') == ~2   
+        [x,y] = system('taskkill /F /IM EXCEL.EXE'); %% kill excel
+    else
+    end
+    
     writetable(Amp19,exc19,'Sheet',"Amp19")
     writetable(Amp19_err,exc19,'Sheet',"Amp19_err")        
     writetable(Pha19,exc19,'Sheet',"Pha19")        
@@ -1695,6 +1740,7 @@ end
 
 
 toc
+fprintf("Finalizado\n ");
 %if 
 %se tabelona e tablonga existem, retorna as tabelas 
 
